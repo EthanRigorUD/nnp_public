@@ -64,6 +64,7 @@ void init_weights(float *w, int size) {
         w[i] = ((float)rand()/RAND_MAX - 0.5f) * 0.1f;
 }
 
+
 /* Train the model using stochastic gradient descent 
 * Arguments:
 *   model (out): pointer to the MODEL structure which holds network parameters. It is populated by this function.
@@ -74,6 +75,23 @@ void train_model(MODEL* model){
     init_weights(model->W1, SIZE*H1); init_weights(model->b1, H1);
     init_weights(model->W2, H1*H2); init_weights(model->b2, H2);
     init_weights(model->W3, H2*CLASSES); init_weights(model->b3, CLASSES);
+    size_t size;
+    Matrix w1 = {SIZE, H1, model->W1}; Matrix D_w1;
+    D_w1.width = w1.width; D_w1.height = w1.height;
+    size = sizeof(SIZE*H1);
+    cudaMalloc(&D_w1, size);
+    cudaMemcpy(D_w1.elements, w1.elements, size, cudaMemcpyHostToDevice);
+    Matrix w2 = {H1, H2, model->W2}; Matrix D_w2;
+    D_w2.width = w2.width; D_w2.height = w2.height;
+    size = sizeof(H1*H2);
+    cudaMalloc(&D_w2, size);
+    cudaMemcpy(D_w2.elements, w2.elements, size, cudaMemcpyHostToDevice);
+    Matrix w3 = {H2, ClASSES, model->W3}; Matrix D_w3;
+    D_w3.width = w3.width; D_w3.height = w3.height;
+    size = sizeof(H2*CLASSES);
+    cudaMalloc(&D_w3, size);
+    cudaMemcpy(D_w3.elements, w3.elements, size, cudaMemcpyHostToDevice);
+
 
     for (int epoch=0; epoch<EPOCHS; epoch++) {
         float loss=0;

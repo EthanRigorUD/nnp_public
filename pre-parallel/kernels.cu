@@ -7,3 +7,8 @@
  *  Example:
  *     __global__ void test_kernel(){}
  */
+#include "nnp.h"
+
+__global__ void matVecMulKer(const Matrix matrix, const float* vector, float* ouptut, bool relu){
+    
+}
