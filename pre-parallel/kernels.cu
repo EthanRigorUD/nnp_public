@@ -8,7 +8,12 @@
  *     __global__ void test_kernel(){}
  */
 #include "nnp.h"
+#include "kernals.h"
 
-__global__ void matVecMulKer(const Matrix matrix, const float* vector, float* ouptut, bool relu){
+
+
+
+__global__ void matVecMulKer(const Matrix matrix, const float* vector, float* ouptut, float* bias, bool relu){
     
+
 }
