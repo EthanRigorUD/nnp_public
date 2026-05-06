@@ -61,7 +61,7 @@ void init_weights(float *w, int size) {
 //get the amount of blocks needed for kernal invocation
 // ceiling method
 float getBlocks(int x, int threads){
-    int blocks = ceil((x + threads) / threads)
+    int blocks = ceil((x + threads) / threads);
     return blocks;
 }
 
@@ -92,14 +92,15 @@ void train_model(MODEL* model){
     cudaMemcpy(D_w2.elements, w2.elements, size, cudaMemcpyHostToDevice);
     size = H2 * sizeof(float); cudaMalloc(&D_b2, size);
     
-    Matrix w3 = {H2, ClASSES, model->W3}; Matrix D_w3; float* D_b3;
+    Matrix w3 = {H2, CLASSES, model->W3}; Matrix D_w3; float* D_b3;
     D_w3.width = w3.width; D_w3.height = w3.height;
     size = H2*CLASSES * sizeof(float); cudaMalloc(&D_w3.elements, size);
     cudaMemcpy(D_w3.elements, w3.elements, size, cudaMemcpyHostToDevice);
     size = CLASSES * sizeof(float); cudaMalloc(&D_b3, size);
 
     //other stuff
-    float* D_train_data_row, D_output;
+    float* D_train_data_row
+    float* D_output;
     size = SIZE * sizeof(float); cudaMalloc(&D_train_data_row, size);
     size = CLASSES * sizeof(float); cudaMalloc(&D_output, size);
 
@@ -133,9 +134,9 @@ void train_model(MODEL* model){
             float out[CLASSES], outa[CLASSES];
             cudaMemcpy(D_train_data_row, train_data[n], size, cudaMemcpyHostToDevice);
             
-            matVecMulKer<<<getBlocks(H1, threads), threads>>>(D_w1, D_train_data_row, D_h1a, D_b1, false)
-            matVecMulKer<<<getBlocks(H2, threads), threads>>>(D_w2, D_h1a, D_h2a, D_b2, false)
-            matVecMulKer<<<getBlocks(CLASSES, threads), threads>>>(D_w3, D_h2a, D_output, D_b3, true)
+            matVecMulKer<<<getBlocks(H1, threads), threads>>>(D_w1, D_train_data_row, D_h1a, D_b1, false);
+            matVecMulKer<<<getBlocks(H2, threads), threads>>>(D_w2, D_h1a, D_h2a, D_b2, false);
+            matVecMulKer<<<getBlocks(CLASSES, threads), threads>>>(D_w3, D_h2a, D_output, D_b3, true);
 
             size = sizeof(float) * CLASSES;
             cudaMemcpy(out, D_output, size, cudaMemcpyDeviceToHost);
