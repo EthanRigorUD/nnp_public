@@ -226,6 +226,11 @@ void train_model(MODEL* model){
             updateWeights<<<getBlocks(,threads),threads>>>(D_w1,D_train_data_row,D_delta1);
             for (int j=0;j<H1;j++) model->b1[j]+=LR*delta1[j];
 
+            size = H1 * sizeof(float); cudaMemcpy(D_b3, model->b1, size,cudaMemcpyHostToDevice);
+            size = H2 * sizeof(float); cudaMemcpy(D_b2, model->b2, size,cudaMemcpyHostToDevice);
+            size = CLASSES * sizeof(float); cudaMemcpy(D_b1, model->b1, size,cudaMemcpyHostToDevice);
+            
+
         }
         printf("Epoch %d, Loss=%.4f\n", epoch, loss/NUM_TRAIN);
     }
