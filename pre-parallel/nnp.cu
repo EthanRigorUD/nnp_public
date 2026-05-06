@@ -83,12 +83,14 @@ void train_model(MODEL* model){
     Matrix w1 = {SIZE, H1, model->W1}; Matrix D_w1; float* D_b1; float* D_h1; float* D_h1a;
     D_w1.width = w1.width; D_w1.height = w1.height;
     size = SIZE*H1 * sizeof(float); cudaMalloc(&D_w1.elements, size);
+    size = H1 * sizeof(float); cudaMalloc(&D_h1a, size);
     cudaMemcpy(D_w1.elements, w1.elements, size, cudaMemcpyHostToDevice);
     size = H1 * sizeof(float); cudaMalloc(&D_b1, size);
     
-    Matrix w2 = {H1, H2, model->W2}; Matrix D_w2; float* D_b2;
+    Matrix w2 = {H1, H2, model->W2}; Matrix D_w2; float* D_b2; float* D_h2a;
     D_w2.width = w2.width; D_w2.height = w2.height;
     size = H1*H2 * sizeof(float); cudaMalloc(&D_w2.elements, size);
+    size = H2 * sizeof(float); cudaMalloc(&D_h2a, size);
     cudaMemcpy(D_w2.elements, w2.elements, size, cudaMemcpyHostToDevice);
     size = H2 * sizeof(float); cudaMalloc(&D_b2, size);
     
@@ -140,6 +142,11 @@ void train_model(MODEL* model){
 
             size = sizeof(float) * CLASSES;
             cudaMemcpy(out, D_output, size, cudaMemcpyDeviceToHost);
+
+            //temp
+            cudaMemcpy(h1a, D_h1a, size, cudaMemcpyDeviceToHost);
+            cudaMemcpy(h2a, D_h2a, size, cudaMemcpyDeviceToHost);
+            
             softmax(out,outa,CLASSES);
             // ---------- Loss ----------
             for (int k=0;k<CLASSES;k++)
