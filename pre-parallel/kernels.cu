@@ -12,14 +12,7 @@
 #include "kernels.h"
 
 
-/* Activation functions for relu layers
-* Arguments:
-*   x: input value
-* Returns:
-*   activated value based on ReLU function 
-*/
-//float relu(float x) { return x > 0 ? x : 0; }
-
+//forward
 __global__ void matVecMulKer(const Matrix matrix, const float* vector, float* output, float* bias, bool isRelu){
     //output vector should be size m*1 if matrix is m*n
     int outputLength = matrix.width;
@@ -40,3 +33,15 @@ __global__ void matVecMulKer(const Matrix matrix, const float* vector, float* ou
     }
 
 }
+//delta
+
+__global__ void delta1Ker(float*,float*,float*,int){
+    int j = blockIdx.x * blockDim.x + blockDim.x;
+
+}
+
+__global__ void delta23Ker(float*,float*,float*,Matrix){
+    int j = blockIdx.x * blockDim.x + blockDim.x;
+
+}
+

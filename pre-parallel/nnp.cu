@@ -106,11 +106,21 @@ void train_model(MODEL* model){
     cudaMemcpy(D_w3.elements, w3.elements, size, cudaMemcpyHostToDevice);
     size = CLASSES * sizeof(float); cudaMalloc(&D_b3, size);
 
+    //deltas
+    float *D_delta3, *D_delta2, *D_delta1;
+    size = CLASSES * sizeof(float); cudaMalloc(&D_delta3, size);
+    size = H2 * sizeof(float); cudaMalloc(&D_delta2, size);
+    size = H1 * sizeof(float); cudaMalloc(&D_delta1, size);
+
     //other stuff
     float* D_train_data_row;
     float* D_output;
+    float* D_outputa;
+    float* D_train_label_row;
     size = SIZE * sizeof(float); cudaMalloc(&D_train_data_row, size);
     size = CLASSES * sizeof(float); cudaMalloc(&D_output, size);
+    size = CLASSES * sizeof(float); cudaMalloc(&D_outputa, size);
+    size = CLASSES * sizeof(float); cudaMalloc(&D_train_label_row, size);
 
     int threads = 256;
     for (int epoch=0; epoch<EPOCHS; epoch++) {
@@ -148,15 +158,20 @@ void train_model(MODEL* model){
 
             size = sizeof(float) * CLASSES;
             cudaMemcpy(out, D_output, size, cudaMemcpyDeviceToHost);
-
-            //temp
-            cudaMemcpy(h1a, D_h1a, size, cudaMemcpyDeviceToHost);
-            cudaMemcpy(h2a, D_h2a, size, cudaMemcpyDeviceToHost);
             
             softmax(out,outa,CLASSES);
+            size = CLASSES * sizeof(float)
+            cudaMemcpy(D_train_label_row, train_label[n], size, cudaMemcpyHostToDevice);
+
+            //temp
+            //cudaMemcpy(h1a, D_h1a, size, cudaMemcpyDeviceToHost);
+            //cudaMemcpy(h2a, D_h2a, size, cudaMemcpyDeviceToHost);
+            
             // ---------- Loss ----------
-            for (int k=0;k<CLASSES;k++)
-                loss -= train_label[n][k]*logf(outa[k]+1e-8f);
+            for (int k=0;k<CLASSES;k++) loss -= train_label[n][k]*logf(outa[k]+1e-8f);
+            size = CLASSES * sizeof(float);
+            cudaMemcpy(D_train_label_row, train_label[n], size, cudaMemcpyHostToDevice);
+
 
             // ---------- Backprop ----------
             float delta3[CLASSES];
