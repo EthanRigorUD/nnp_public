@@ -17,4 +17,4 @@ typedef struct {
 
 
 
-__global__ void matVecMulKer(const Matrix, const float*, const float*, float*, bool);
+__global__ void matVecMulKer(const Matrix, const float*, float*, float*, bool);

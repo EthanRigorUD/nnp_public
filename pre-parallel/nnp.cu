@@ -24,7 +24,13 @@
 #include "kernels.h"
 
 
-// old relu location
+/* Activation functions for relu layers
+* Arguments:
+*   x: input value
+* Returns:
+*   activated value based on ReLU function 
+*/
+float relu(float x) { return x > 0 ? x : 0; }
 
 /* Derivative of ReLU activation function
 * Arguments:

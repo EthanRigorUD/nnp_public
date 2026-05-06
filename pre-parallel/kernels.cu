@@ -7,6 +7,7 @@
  *  Example:
  *     __global__ void test_kernel(){}
  */
+#include "config.h"
 #include "nnp.h"
 #include "kernels.h"
 
@@ -17,7 +18,7 @@
 * Returns:
 *   activated value based on ReLU function 
 */
-float relu(float x) { return x > 0 ? x : 0; }
+//float relu(float x) { return x > 0 ? x : 0; }
 
 __global__ void matVecMulKer(const Matrix matrix, const float* vector, float* output, float* bias, bool isRelu){
     //output vector should be size m*1 if matrix is m*n
@@ -32,7 +33,7 @@ __global__ void matVecMulKer(const Matrix matrix, const float* vector, float* ou
     for (int i=0;i<inputLength;i++) pos+=vector[i]*matrix.elements[i*outputLength+j];
 
     if (isRelu){
-        output[j] = relu(pos);
+        output[j] = pos > 0 ? pos : 0;
     }  
     else{
         output[j] = pos;
