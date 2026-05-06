@@ -99,7 +99,7 @@ void train_model(MODEL* model){
     size = CLASSES * sizeof(float); cudaMalloc(&D_b3, size);
 
     //other stuff
-    float* D_train_data_row
+    float* D_train_data_row;
     float* D_output;
     size = SIZE * sizeof(float); cudaMalloc(&D_train_data_row, size);
     size = CLASSES * sizeof(float); cudaMalloc(&D_output, size);
@@ -109,7 +109,7 @@ void train_model(MODEL* model){
         float loss=0;
         for (int n=0; n<NUM_TRAIN; n++) {
             // ---------- Forward ----------
-            
+            float h2[H2], h2a[H2], h1[H1], h1a[H1];
             // old serial
             // float h1[H1], h1a[H1];
             // for (int j=0;j<H1;j++){
