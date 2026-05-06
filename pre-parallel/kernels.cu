@@ -19,7 +19,7 @@
 */
 float relu(float x) { return x > 0 ? x : 0; }
 
-__global__ void matVecMulKer(const Matrix matrix, const float* vector, float* ouptut, float* bias, bool relu){
+__global__ void matVecMulKer(const Matrix matrix, const float* vector, float* output, float* bias, bool relu){
     //output vector should be size m*1 if matrix is m*n
     int outputLength = matrix.width;
     // when multiplying a matrix and vector, the height needs to be the same, ergo
@@ -29,10 +29,10 @@ __global__ void matVecMulKer(const Matrix matrix, const float* vector, float* ou
 
     float pos = bias[j];
     // serial inner loop
-    for (int i=0;i<inputLength;i++) pos+=vector[i]*matrix->elements[i*H1+j];
+    for (int i=0;i<inputLength;i++) pos+=vector[i]*matrix.elements[i*outputLength+j];
 
     if (relu){
-        output[j] = relu(sum);
+        output[j] = relu(pos);
     }  
     else{
         output[j] = pos;
