@@ -14,6 +14,7 @@
 
 
 __global__ void matVecMulKer(const Matrix matrix, const float* vector, float* ouptut, float* bias, bool relu){
-    
+    //output vector should be size m*1 if matrix is m*n
+    int outputLength = matrix.width;
 
 }
