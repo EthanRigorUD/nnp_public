@@ -29,7 +29,7 @@ __global__ void matVecMulKer(const Matrix matrix, const float* vector, float* ou
 
     float pos = bias[j];
     // serial inner loop
-    for (int i=0;i<inputLength;i++) pos+=train_data[n][i]*matrix->elements[i*H1+j];
+    for (int i=0;i<inputLength;i++) pos+=vector[i]*matrix->elements[i*H1+j];
 
     if (relu){
         output[j] = relu(sum);
