@@ -8,7 +8,7 @@
  *     __global__ void test_kernel(){}
  */
 #include "nnp.h"
-#include "kernals.h"
+#include "kernels.h"
 
 
 /* Activation functions for relu layers
