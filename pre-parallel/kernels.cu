@@ -11,10 +11,31 @@
 #include "kernals.h"
 
 
-
+/* Activation functions for relu layers
+* Arguments:
+*   x: input value
+* Returns:
+*   activated value based on ReLU function 
+*/
+float relu(float x) { return x > 0 ? x : 0; }
 
 __global__ void matVecMulKer(const Matrix matrix, const float* vector, float* ouptut, float* bias, bool relu){
     //output vector should be size m*1 if matrix is m*n
     int outputLength = matrix.width;
+    // when multiplying a matrix and vector, the height needs to be the same, ergo
+    int inputLength = matrix.height;
+
+    int j = blockIdx.x * blockDim.x + blockDim.x;
+
+    float pos = bias[j];
+    // serial inner loop
+    for (int i=0;i<inputLength;i++) pos+=train_data[n][i]*matrix->elements[i*H1+j];
+
+    if (relu){
+        output[j] = relu(sum);
+    }  
+    else{
+        output[j] = pos;
+    }
 
 }

@@ -15,12 +15,6 @@ typedef struct {
     float* elements;
 } Matrix;
 
-/* Activation functions for relu layers
-* Arguments:
-*   x: input value
-* Returns:
-*   activated value based on ReLU function 
-*/
-float relu(float x) { return x > 0 ? x : 0; }
+
 
 __global__ void matVecMulKer(const Matrix, const float*, const float*, float*, bool);
