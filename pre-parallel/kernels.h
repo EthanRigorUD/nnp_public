@@ -19,5 +19,5 @@ typedef struct {
 
 __global__ void matVecMulKer(const Matrix, const float*, float*, float*, bool);
 
-__global__ void delta1Ker(float*,float*,float*,int);
-__global__ void delta23Ker(float*,float*,float*,Matrix);
+__global__ void delta3Ker(float*,float*,float*,int);
+__global__ void delta12Ker(Matrix, float*,float*,float*);

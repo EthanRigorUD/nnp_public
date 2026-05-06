@@ -35,13 +35,21 @@ __global__ void matVecMulKer(const Matrix matrix, const float* vector, float* ou
 }
 //delta
 
-__global__ void delta1Ker(float*,float*,float*,int){
+__global__ void delta3Ker(float* delta,float* train,float* outa,int len){
     int j = blockIdx.x * blockDim.x + blockDim.x;
-
+    if(j<len) delta[j] =train[j] - outa[j];
+    //as shrimple as that
 }
 
-__global__ void delta23Ker(float*,float*,float*,Matrix){
+__global__ void delta12Ker(Matrix matrix,float* delta1,float* delta2,float*hLayer){
     int j = blockIdx.x * blockDim.x + blockDim.x;
+    float err=0;
+
+    for (int k=0;k<matrix.height;k++) err+=delta2[k]*matrix.elements[j*matrix.height+k];
+
+    //float drelu(float y) { return y > 0 ? 1 : 0; }
+    drelu = hLayer[j] > 0 ? 1: 0;
+    delta1[j]=err*(drelu);
 
 }
 

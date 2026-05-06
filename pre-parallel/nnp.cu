@@ -174,23 +174,33 @@ void train_model(MODEL* model){
 
 
             // ---------- Backprop ----------
-            float delta3[CLASSES];
-            for (int k=0;k<CLASSES;k++)
-                delta3[k] = train_label[n][k]-outa[k];
+            // old serial
+            // float delta3[CLASSES];
+            // for (int k=0;k<CLASSES;k++)
+            //     delta3[k] = train_label[n][k]-outa[k];
 
-            float delta2[H2];
-            for (int j=0;j<H2;j++){
-                float err=0;
-                for (int k=0;k<CLASSES;k++) err+=delta3[k]*model->W3[j*CLASSES+k];
-                delta2[j]=err*drelu(h2a[j]);
-            }
+            // float delta2[H2];
+            // for (int j=0;j<H2;j++){
+            //     float err=0;
+            //     for (int k=0;k<CLASSES;k++) err+=delta3[k]*model->W3[j*CLASSES+k];
+            //     delta2[j]=err*drelu(h2a[j]);
+            // }
 
-            float delta1[H1];
-            for (int j=0;j<H1;j++){
-                float err=0;
-                for (int k=0;k<H2;k++) err+=delta2[k]*model->W2[j*H2+k];
-                delta1[j]=err*drelu(h1a[j]);
-            }
+            // float delta1[H1];
+            // for (int j=0;j<H1;j++){
+            //     float err=0;
+            //     for (int k=0;k<H2;k++) err+=delta2[k]*model->W2[j*H2+k];
+            //     delta1[j]=err*drelu(h1a[j]);
+            // }
+
+            delta3Ker<<<getBlocks(CLASSES,threads),threads>>>(D_delta3,D_train_label_row,D_output,CLASSES);
+            delta12Ker<<<getBlocks(H2,threads),threads>>>(D_w3,D_delta2,D_delta3,D_h2a);
+            delta12Ker<<<getBlocks(H1,threads),threads>>>(D_w2,D_delta1,D_delta2,D_h1a);
+
+            float delta3[CLASSES], delta2[H2], delta1[H1];
+            size = CLASSES * sizeof(float); cudaMemcpy(delta3, D_delta3, size, cudaMemcpyDeviceToHost)
+            size = H2 * sizeof(float); cudaMemcpy(delta2, D_delta2, size, cudaMemcpyDeviceToHost)
+            size = H1 * sizeof(float); cudaMemcpy(delta1, D_delta1, size, cudaMemcpyDeviceToHost)
 
             // ---------- Update ----------
             for (int j=0;j<H2;j++)
