@@ -203,20 +203,29 @@ void train_model(MODEL* model){
             size = H1 * sizeof(float); cudaMemcpy(delta1, D_delta1, size, cudaMemcpyDeviceToHost);
 
             // ---------- Update ----------
-            for (int j=0;j<H2;j++)
-                for (int k=0;k<CLASSES;k++)
-                    model->W3[j*CLASSES+k]+=LR*delta3[k]*h2a[j];
+            
+            // for (int j=0;j<H2;j++)
+            //     for (int k=0;k<CLASSES;k++)
+            //         model->W3[j*CLASSES+k]+=LR*delta3[k]*h2a[j];
+            // for (int k=0;k<CLASSES;k++) model->b3[k]+=LR*delta3[k];
+
+            // for (int j=0;j<H1;j++)
+            //     for (int k=0;k<H2;k++)
+            //         model->W2[j*H2+k]+=LR*delta2[k]*h1a[j];
+            // for (int k=0;k<H2;k++) model->b2[k]+=LR*delta2[k];
+
+            // for (int i=0;i<SIZE;i++)
+            //     for (int j=0;j<H1;j++)
+            //         model->W1[i*H1+j]+=LR*delta1[j]*train_data[n][i];
+            // for (int j=0;j<H1;j++) model->b1[j]+=LR*delta1[j];
+
+            updateWeights<<<getBlocks(,threads),threads>>>(D_w3,D_h2a,D_delta3);
             for (int k=0;k<CLASSES;k++) model->b3[k]+=LR*delta3[k];
-
-            for (int j=0;j<H1;j++)
-                for (int k=0;k<H2;k++)
-                    model->W2[j*H2+k]+=LR*delta2[k]*h1a[j];
+            updateWeights<<<getBlocks(,threads),threads>>>(D_w2,D_h1a,D_delta2);
             for (int k=0;k<H2;k++) model->b2[k]+=LR*delta2[k];
-
-            for (int i=0;i<SIZE;i++)
-                for (int j=0;j<H1;j++)
-                    model->W1[i*H1+j]+=LR*delta1[j]*train_data[n][i];
+            updateWeights<<<getBlocks(,threads),threads>>>(D_w1,D_train_data_row,D_delta1);
             for (int j=0;j<H1;j++) model->b1[j]+=LR*delta1[j];
+
         }
         printf("Epoch %d, Loss=%.4f\n", epoch, loss/NUM_TRAIN);
     }

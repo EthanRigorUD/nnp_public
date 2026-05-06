@@ -21,3 +21,5 @@ __global__ void matVecMulKer(const Matrix, const float*, float*, float*, bool);
 
 __global__ void delta3Ker(float*,float*,float*,int);
 __global__ void delta12Ker(Matrix, float*,float*,float*);
+
+__global__ void updateWeight(Matrix, float*, float*);

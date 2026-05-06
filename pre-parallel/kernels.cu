@@ -21,6 +21,7 @@ __global__ void matVecMulKer(const Matrix matrix, const float* vector, float* ou
 
     int j = blockIdx.x * blockDim.x + blockDim.x;
 
+    
     float pos = bias[j];
     // serial inner loop
     for (int i=0;i<inputLength;i++) pos+=vector[i]*matrix.elements[i*outputLength+j];
@@ -45,6 +46,8 @@ __global__ void delta12Ker(Matrix matrix,float* delta1,float* delta2,float*hLaye
     int j = blockIdx.x * blockDim.x + blockDim.x;
     float err=0;
 
+    if(j>=matrix.width) return;
+
     for (int k=0;k<matrix.height;k++) err+=delta2[k]*matrix.elements[j*matrix.height+k];
 
     //float drelu(float y) { return y > 0 ? 1 : 0; }
@@ -53,3 +56,9 @@ __global__ void delta12Ker(Matrix matrix,float* delta1,float* delta2,float*hLaye
 
 }
 
+__global__ void updateWeights(Matrix matrix, float* vector, float* delta){
+    int j = blockIdx.x * blockDim.x + blockDim.x;
+
+    for (int k=0;k<matrix.width;k++) matrix.elements[j*matrix.width+k]+=LR*delta[k]*vector[j];
+
+}
