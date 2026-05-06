@@ -138,7 +138,7 @@ void train_model(MODEL* model){
             matVecMulKer<<<getBlocks(CLASSES, threads), threads>>>(D_w3, D_h2a, D_output, D_b3, true)
 
             size = sizeof(float) * CLASSES;
-            cudaMemcpy(D_train_data_row, train_data[n], size, cudaMemcpyDeviceToHost);
+            cudaMemcpy(out, D_output, size, cudaMemcpyDeviceToHost);
             softmax(out,outa,CLASSES);
             // ---------- Loss ----------
             for (int k=0;k<CLASSES;k++)
