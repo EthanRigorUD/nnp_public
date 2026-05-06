@@ -10,8 +10,8 @@
 //__global__ void test_kernel();
 
 typedef struct {
-    int width;
     int height;
+    int width;
     float* elements;
 } Matrix;
 

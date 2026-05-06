@@ -77,22 +77,24 @@ void train_model(MODEL* model){
     init_weights(model->W2, H1*H2); init_weights(model->b2, H2);
     init_weights(model->W3, H2*CLASSES); init_weights(model->b3, CLASSES);
 
+    //weights and biases
+
     size_t size;
     Matrix w1 = {SIZE, H1, model->W1}; Matrix D_w1; float* D_b1; float* D_h1; float* D_h1a;
     D_w1.width = w1.width; D_w1.height = w1.height;
-    size = SIZE*H1 * sizeof(float); cudaMalloc(&D_w1, size);
+    size = SIZE*H1 * sizeof(float); cudaMalloc(&D_w1.elements, size);
     cudaMemcpy(D_w1.elements, w1.elements, size, cudaMemcpyHostToDevice);
     size = H1 * sizeof(float); cudaMalloc(&D_b1, size);
     
     Matrix w2 = {H1, H2, model->W2}; Matrix D_w2; float* D_b2;
     D_w2.width = w2.width; D_w2.height = w2.height;
-    size = H1*H2 * sizeof(float); cudaMalloc(&D_w2, size);
+    size = H1*H2 * sizeof(float); cudaMalloc(&D_w2.elements, size);
     cudaMemcpy(D_w2.elements, w2.elements, size, cudaMemcpyHostToDevice);
     size = H2 * sizeof(float); cudaMalloc(&D_b2, size);
     
     Matrix w3 = {H2, ClASSES, model->W3}; Matrix D_w3; float* D_b3;
     D_w3.width = w3.width; D_w3.height = w3.height;
-    size = H2*CLASSES * sizeof(float); cudaMalloc(&D_w3, size);
+    size = H2*CLASSES * sizeof(float); cudaMalloc(&D_w3.elements, size);
     cudaMemcpy(D_w3.elements, w3.elements, size, cudaMemcpyHostToDevice);
     size = CLASSES * sizeof(float); cudaMalloc(&D_b3, size);
 
@@ -107,7 +109,7 @@ void train_model(MODEL* model){
         for (int n=0; n<NUM_TRAIN; n++) {
             // ---------- Forward ----------
             
-            // old
+            // old serial
             // float h1[H1], h1a[H1];
             // for (int j=0;j<H1;j++){
             //     h1[j]=model->b1[j];
@@ -131,9 +133,9 @@ void train_model(MODEL* model){
             float out[CLASSES], outa[CLASSES];
             cudaMemcpy(D_train_data_row, train_data[n], size, cudaMemcpyHostToDevice);
             
-            matVecMulKer<<<getBlocks(H1), threads>>>(D_w1, D_train_data_row, D_h1a, D_b1, false)
-            matVecMulKer<<<getBlocks(H2), threads>>>(D_w2, D_h1a, D_h2a, D_b2, false)
-            matVecMulKer<<<getBlocks(CLASSES), threads>>>(D_w3, D_h2a, D_output, D_b3, true)
+            matVecMulKer<<<getBlocks(H1, threads), threads>>>(D_w1, D_train_data_row, D_h1a, D_b1, false)
+            matVecMulKer<<<getBlocks(H2, threads), threads>>>(D_w2, D_h1a, D_h2a, D_b2, false)
+            matVecMulKer<<<getBlocks(CLASSES, threads), threads>>>(D_w3, D_h2a, D_output, D_b3, true)
 
             size = sizeof(float) * CLASSES;
             cudaMemcpy(D_train_data_row, train_data[n], size, cudaMemcpyDeviceToHost);
