@@ -48,7 +48,7 @@ __global__ void delta12Ker(Matrix matrix,float* delta1,float* delta2,float*hLaye
     for (int k=0;k<matrix.height;k++) err+=delta2[k]*matrix.elements[j*matrix.height+k];
 
     //float drelu(float y) { return y > 0 ? 1 : 0; }
-    drelu = hLayer[j] > 0 ? 1: 0;
+    int drelu = hLayer[j] > 0 ? 1: 0;
     delta1[j]=err*(drelu);
 
 }

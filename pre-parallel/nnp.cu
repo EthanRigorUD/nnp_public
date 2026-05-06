@@ -160,7 +160,7 @@ void train_model(MODEL* model){
             cudaMemcpy(out, D_output, size, cudaMemcpyDeviceToHost);
             
             softmax(out,outa,CLASSES);
-            size = CLASSES * sizeof(float)
+            size = CLASSES * sizeof(float);
             cudaMemcpy(D_train_label_row, train_label[n], size, cudaMemcpyHostToDevice);
 
             //temp
@@ -198,9 +198,9 @@ void train_model(MODEL* model){
             delta12Ker<<<getBlocks(H1,threads),threads>>>(D_w2,D_delta1,D_delta2,D_h1a);
 
             float delta3[CLASSES], delta2[H2], delta1[H1];
-            size = CLASSES * sizeof(float); cudaMemcpy(delta3, D_delta3, size, cudaMemcpyDeviceToHost)
-            size = H2 * sizeof(float); cudaMemcpy(delta2, D_delta2, size, cudaMemcpyDeviceToHost)
-            size = H1 * sizeof(float); cudaMemcpy(delta1, D_delta1, size, cudaMemcpyDeviceToHost)
+            size = CLASSES * sizeof(float); cudaMemcpy(delta3, D_delta3, size, cudaMemcpyDeviceToHost);
+            size = H2 * sizeof(float); cudaMemcpy(delta2, D_delta2, size, cudaMemcpyDeviceToHost);
+            size = H1 * sizeof(float); cudaMemcpy(delta1, D_delta1, size, cudaMemcpyDeviceToHost);
 
             // ---------- Update ----------
             for (int j=0;j<H2;j++)
