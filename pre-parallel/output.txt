@@ -1,0 +1,12 @@
+Script started on Wed May  6 23:22:31 2026
+]0;ethanrig@:~/cisc372/nnp_public/pre-parallel[?1034h[ethanrig@r2v00 pre-parallel]$ exitmake vim nnp.cusrun nnp predict[2Ptrain
+Epoch 0, Loss=2.3029
+Epoch 1, Loss=2.3029
+Epoch 2, Loss=2.3029
+Epoch 3, Loss=2.3029
+Epoch 4, Loss=2.3029
+Trained model in 43 seconds
+]0;ethanrig@:~/cisc372/nnp_public/pre-parallel[ethanrig@r2v00 pre-parallel]$ exit
+exit
+
+Script done on Wed May  6 23:23:31 2026

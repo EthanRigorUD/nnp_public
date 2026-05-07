@@ -68,7 +68,9 @@ void init_weights(float *w, int size) {
 // ceiling method
 float getBlocks(int x, int threads){
     int blocks = ceil((x + threads) / threads);
-    return blocks;
+    	//int blocks = (x + threads - 1) / threads;
+	
+	return blocks;
 }
 
 
@@ -90,21 +92,24 @@ void train_model(MODEL* model){
     D_w1.width = w1.width; D_w1.height = w1.height;
     size = SIZE*H1 * sizeof(float); cudaMalloc(&D_w1.elements, size);
     size = H1 * sizeof(float); cudaMalloc(&D_h1a, size);
-    cudaMemcpy(D_w1.elements, w1.elements, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(D_w1.elements, w1.elements, size, cudaMemcpyHostToDevice); //matrix
     size = H1 * sizeof(float); cudaMalloc(&D_b1, size);
-    
+    cudaMemcpy(D_b1, model->b1, size, cudaMemcpyHostToDevice); //bias   
+ 
     Matrix w2 = {H1, H2, model->W2}; Matrix D_w2; float* D_b2; float* D_h2a;
     D_w2.width = w2.width; D_w2.height = w2.height;
     size = H1*H2 * sizeof(float); cudaMalloc(&D_w2.elements, size);
     size = H2 * sizeof(float); cudaMalloc(&D_h2a, size);
     cudaMemcpy(D_w2.elements, w2.elements, size, cudaMemcpyHostToDevice);
     size = H2 * sizeof(float); cudaMalloc(&D_b2, size);
+    cudaMemcpy(D_b2, model->b2, size, cudaMemcpyHostToDevice);
     
     Matrix w3 = {H2, CLASSES, model->W3}; Matrix D_w3; float* D_b3;
     D_w3.width = w3.width; D_w3.height = w3.height;
     size = H2*CLASSES * sizeof(float); cudaMalloc(&D_w3.elements, size);
     cudaMemcpy(D_w3.elements, w3.elements, size, cudaMemcpyHostToDevice);
     size = CLASSES * sizeof(float); cudaMalloc(&D_b3, size);
+    cudaMemcpy(D_b3, model->b3, size, cudaMemcpyHostToDevice);
 
     //deltas
     float *D_delta3, *D_delta2, *D_delta1;
@@ -127,7 +132,7 @@ void train_model(MODEL* model){
         float loss=0;
         for (int n=0; n<NUM_TRAIN; n++) {
             // ---------- Forward ----------
-            float h2[H2], h2a[H2], h1[H1], h1a[H1];
+            //float h2[H2], h2a[H2], h1[H1], h1a[H1];
             // old serial
             // float h1[H1], h1a[H1];
             // for (int j=0;j<H1;j++){
@@ -153,25 +158,24 @@ void train_model(MODEL* model){
             cudaMemcpy(D_train_data_row, train_data[n], size, cudaMemcpyHostToDevice);
             
             matVecMulKer<<<getBlocks(H1, threads), threads>>>(D_w1, D_train_data_row, D_h1a, D_b1, true);
-            matVecMulKer<<<getBlocks(H2, threads), threads>>>(D_w2, D_h1a, D_h2a, D_b2, true);
-            matVecMulKer<<<getBlocks(CLASSES, threads), threads>>>(D_w3, D_h2a, D_output, D_b3, false);
-
+            //cudaDeviceSynchronize();
+	    matVecMulKer<<<getBlocks(H2, threads), threads>>>(D_w2, D_h1a, D_h2a, D_b2, true);
+            //cudaDeviceSynchronize();
+	    matVecMulKer<<<getBlocks(CLASSES, threads), threads>>>(D_w3, D_h2a, D_output, D_b3, false);
+	    //cudaDeviceSynchronize();
             size = sizeof(float) * CLASSES;
             cudaMemcpy(out, D_output, size, cudaMemcpyDeviceToHost);
             
             softmax(out,outa,CLASSES);
-            size = CLASSES * sizeof(float);
-            cudaMemcpy(D_train_label_row, train_label[n], size, cudaMemcpyHostToDevice);
+            //size = CLASSES * sizeof(float);
+            //cudaMemcpy(D_train_label_row, train_label[n], size, cudaMemcpyHostToDevice);
 
-            //temp
-            //cudaMemcpy(h1a, D_h1a, size, cudaMemcpyDeviceToHost);
-            //cudaMemcpy(h2a, D_h2a, size, cudaMemcpyDeviceToHost);
             
             // ---------- Loss ----------
             for (int k=0;k<CLASSES;k++) loss -= train_label[n][k]*logf(outa[k]+1e-8f);
             size = CLASSES * sizeof(float);
             cudaMemcpy(D_train_label_row, train_label[n], size, cudaMemcpyHostToDevice);
-
+	    cudaMemcpy(D_outputa, outa, size, cudaMemcpyHostToDevice);
 
             // ---------- Backprop ----------
             // old serial
@@ -194,9 +198,11 @@ void train_model(MODEL* model){
             // }
 
             delta3Ker<<<getBlocks(CLASSES,threads),threads>>>(D_delta3,D_train_label_row,D_output,CLASSES);
-            delta12Ker<<<getBlocks(H2,threads),threads>>>(D_w3,D_delta2,D_delta3,D_h2a);
+            cudaDeviceSynchronize();
+	    delta12Ker<<<getBlocks(H2,threads),threads>>>(D_w3,D_delta2,D_delta3,D_h2a);
+            cudaDeviceSynchronize();
             delta12Ker<<<getBlocks(H1,threads),threads>>>(D_w2,D_delta1,D_delta2,D_h1a);
-
+	    cudaDeviceSynchronize();
             float delta3[CLASSES], delta2[H2], delta1[H1];
             size = CLASSES * sizeof(float); cudaMemcpy(delta3, D_delta3, size, cudaMemcpyDeviceToHost);
             size = H2 * sizeof(float); cudaMemcpy(delta2, D_delta2, size, cudaMemcpyDeviceToHost);
@@ -220,27 +226,36 @@ void train_model(MODEL* model){
             // for (int j=0;j<H1;j++) model->b1[j]+=LR*delta1[j];
 
             updateWeight<<<getBlocks(H2 * CLASSES,threads),threads>>>(D_w3,D_h2a,D_delta3);
-            for (int k=0;k<CLASSES;k++) model->b3[k]+=LR*delta3[k];
+            cudaDeviceSynchronize();
+	    for (int k=0;k<CLASSES;k++) model->b3[k]+=LR*delta3[k];
             updateWeight<<<getBlocks(H1 * CLASSES,threads),threads>>>(D_w2,D_h1a,D_delta2);
-            for (int k=0;k<H2;k++) model->b2[k]+=LR*delta2[k];
+            cudaDeviceSynchronize();
+	    for (int k=0;k<H2;k++) model->b2[k]+=LR*delta2[k];
             updateWeight<<<getBlocks(H1 * SIZE,threads),threads>>>(D_w1,D_train_data_row,D_delta1);
-            for (int j=0;j<H1;j++) model->b1[j]+=LR*delta1[j];
-
-            size = H1 * sizeof(float); cudaMemcpy(D_b3, model->b1, size,cudaMemcpyHostToDevice);
+            cudaDeviceSynchronize();
+	    for (int j=0;j<H1;j++) model->b1[j]+=LR*delta1[j];
+	    
+            size = H1 * sizeof(float); cudaMemcpy(D_b1, model->b1, size,cudaMemcpyHostToDevice);
             size = H2 * sizeof(float); cudaMemcpy(D_b2, model->b2, size,cudaMemcpyHostToDevice);
-            size = CLASSES * sizeof(float); cudaMemcpy(D_b1, model->b1, size,cudaMemcpyHostToDevice);
+            size = CLASSES * sizeof(float); cudaMemcpy(D_b3, model->b3, size,cudaMemcpyHostToDevice);
             
 
         }
         printf("Epoch %d, Loss=%.4f\n", epoch, loss/NUM_TRAIN);
     }
+
+	size = SIZE*H1 * sizeof(float); cudaMemcpy(model->W1, D_w1.elements, size, cudaMemcpyDeviceToHost);
+	size = H1*H2 * sizeof(float); cudaMemcpy(model->W2, D_w2.elements, size, cudaMemcpyDeviceToHost);
+	size = H2*CLASSES * sizeof(float); cudaMemcpy(model->W3, D_w3.elements, size, cudaMemcpyDeviceToHost);
+
+
     //cleanup
-    cudaFree(D_w1); cudaFree(D_w2); cudaFree(D_w3);
+    cudaFree(D_w1.elements); cudaFree(D_w2.elements); cudaFree(D_w3.elements);
     cudaFree(D_b1); cudaFree(D_b2); cudaFree(D_b3);
     cudaFree(D_h1a); cudaFree(D_h2a);
     cudaFree(D_delta1); cudaFree(D_delta2); cudaFree(D_delta3);
     cudaFree(D_train_data_row); cudaFree(D_train_label_row);
-    cudaFree(D_output); cudaFree(D_outputA);
+    cudaFree(D_output); cudaFree(D_outputa);
 
     
 
