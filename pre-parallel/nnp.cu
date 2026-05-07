@@ -86,7 +86,7 @@ void train_model(MODEL* model){
     //weights and biases
 
     size_t size;
-    Matrix w1 = {SIZE, H1, model->W1}; Matrix D_w1; float* D_b1; float* D_h1; float* D_h1a;
+    Matrix w1 = {SIZE, H1, model->W1}; Matrix D_w1; float* D_b1; float* D_h1a;
     D_w1.width = w1.width; D_w1.height = w1.height;
     size = SIZE*H1 * sizeof(float); cudaMalloc(&D_w1.elements, size);
     size = H1 * sizeof(float); cudaMalloc(&D_h1a, size);
@@ -234,6 +234,16 @@ void train_model(MODEL* model){
         }
         printf("Epoch %d, Loss=%.4f\n", epoch, loss/NUM_TRAIN);
     }
+    //cleanup
+    cudaFree(D_w1); cudaFree(D_w2); cudaFree(D_w3);
+    cudaFree(D_b1); cudaFree(D_b2); cudaFree(D_b3);
+    cudaFree(D_h1a); cudaFree(D_h2a);
+    cudaFree(D_delta1); cudaFree(D_delta2); cudaFree(D_delta3);
+    cudaFree(D_train_data_row); cudaFree(D_train_label_row);
+    cudaFree(D_output); cudaFree(D_outputA);
+
+    
+
 }
 
 /* Save the trained model to a binary file
