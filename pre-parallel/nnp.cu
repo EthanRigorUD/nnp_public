@@ -152,9 +152,9 @@ void train_model(MODEL* model){
             float out[CLASSES], outa[CLASSES];
             cudaMemcpy(D_train_data_row, train_data[n], size, cudaMemcpyHostToDevice);
             
-            matVecMulKer<<<getBlocks(H1, threads), threads>>>(D_w1, D_train_data_row, D_h1a, D_b1, false);
-            matVecMulKer<<<getBlocks(H2, threads), threads>>>(D_w2, D_h1a, D_h2a, D_b2, false);
-            matVecMulKer<<<getBlocks(CLASSES, threads), threads>>>(D_w3, D_h2a, D_output, D_b3, true);
+            matVecMulKer<<<getBlocks(H1, threads), threads>>>(D_w1, D_train_data_row, D_h1a, D_b1, true);
+            matVecMulKer<<<getBlocks(H2, threads), threads>>>(D_w2, D_h1a, D_h2a, D_b2, true);
+            matVecMulKer<<<getBlocks(CLASSES, threads), threads>>>(D_w3, D_h2a, D_output, D_b3, false);
 
             size = sizeof(float) * CLASSES;
             cudaMemcpy(out, D_output, size, cudaMemcpyDeviceToHost);
@@ -219,11 +219,11 @@ void train_model(MODEL* model){
             //         model->W1[i*H1+j]+=LR*delta1[j]*train_data[n][i];
             // for (int j=0;j<H1;j++) model->b1[j]+=LR*delta1[j];
 
-            updateWeights<<<getBlocks(,threads),threads>>>(D_w3,D_h2a,D_delta3);
+            updateWeight<<<getBlocks(H2 * CLASSES,threads),threads>>>(D_w3,D_h2a,D_delta3);
             for (int k=0;k<CLASSES;k++) model->b3[k]+=LR*delta3[k];
-            updateWeights<<<getBlocks(,threads),threads>>>(D_w2,D_h1a,D_delta2);
+            updateWeight<<<getBlocks(H1 * CLASSES,threads),threads>>>(D_w2,D_h1a,D_delta2);
             for (int k=0;k<H2;k++) model->b2[k]+=LR*delta2[k];
-            updateWeights<<<getBlocks(,threads),threads>>>(D_w1,D_train_data_row,D_delta1);
+            updateWeight<<<getBlocks(H1 * SIZE,threads),threads>>>(D_w1,D_train_data_row,D_delta1);
             for (int j=0;j<H1;j++) model->b1[j]+=LR*delta1[j];
 
             size = H1 * sizeof(float); cudaMemcpy(D_b3, model->b1, size,cudaMemcpyHostToDevice);
